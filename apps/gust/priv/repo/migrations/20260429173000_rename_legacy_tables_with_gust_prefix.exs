@@ -112,7 +112,7 @@ defmodule Gust.Repo.Migrations.RenameLegacyTablesWithGustPrefix do
     end)
   end
 
-  defp rename_table_if_needed(old_name, new_name, sequence_name \\ nil) do
+  defp rename_table_if_needed(old_name, new_name, sequence_name) do
     execute("""
     DO $$
     DECLARE
