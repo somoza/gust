@@ -238,22 +238,21 @@ config :gust_web, mcp_enabled: true
 
 - [Available Skills](https://github.com/marciok/gust/tree/main/skills)
 
-
 ---
 
-
-## Adding Gust to an existing Phoenix app
-
-If you already have a Phoenix project and want to add Gust in place, install `gust_web` with [Igniter](https://hexdocs.pm/igniter).
-
-### Upgrading from 0.1.29
+## Upgrading from 0.1.29
 
 This note applies only to projects upgrading from Gust `0.1.29` to `0.1.30`
 or later.
 
+The project migrated form a simple dependency to an extension of your Phoenix App that is installed via [Igniter](https://hexdocs.pm/igniter/readme.html).  
+
+### Key changes:
+
 Starting with Gust `0.1.30`, `Gust.Repo` stores its migration history in
 `gust_schema_migrations` instead of the default `schema_migrations` table.
-Fresh installs do not need any special handling.
+
+*Fresh installs do not need any special handling*.
 
 If your project already ran Gust migrations on `0.1.29`, you must bootstrap
 the new migration-tracking table before running `mix ecto.migrate`. Otherwise
@@ -267,23 +266,18 @@ CREATE TABLE IF NOT EXISTS gust_schema_migrations (
   inserted_at timestamp(0) without time zone
 );
 
-INSERT INTO gust_schema_migrations (version, inserted_at)
-SELECT version, inserted_at
-FROM schema_migrations
-WHERE version IN (
-  20250806203011,
-  20250815190135,
-  20250815205059,
-  20250930125654,
-  20251026200057,
-  20251031173208,
-  20251230160539,
-  20260429173000
-)
-ON CONFLICT (version) DO NOTHING;
 ```
 
 After that, continue with `mix ecto.migrate` as usual.
+
+
+---
+
+
+## Adding Gust to an existing Phoenix app
+
+If you already have a Phoenix project and want to add Gust in place, install `gust_web` with [Igniter](https://hexdocs.pm/igniter).
+
 
 1. If you do not have Igniter installed yet, bootstrap it first:
 
