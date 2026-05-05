@@ -1,3 +1,4 @@
+
 # Find eligible builder and runner images on Docker Hub. We use Debian
 # instead of Alpine to avoid DNS resolution issues in production.
 #
@@ -32,7 +33,6 @@ RUN mix local.hex --force \
 COPY mix.exs mix.lock ./
 COPY config config
 COPY apps/gust/mix.exs apps/gust/mix.exs
-COPY apps/gust_web/mix.exs apps/gust_web/mix.exs
 
 RUN mix deps.get --only ${MIX_ENV}
 RUN mix deps.compile
@@ -40,17 +40,14 @@ RUN mix deps.compile
 # Copy the umbrella applications and runtime assets.
 COPY apps/gust/lib apps/gust/lib
 COPY apps/gust/priv apps/gust/priv
-COPY apps/gust_web/lib apps/gust_web/lib
-COPY apps/gust_web/priv apps/gust_web/priv
-COPY apps/gust_web/assets apps/gust_web/assets
-COPY apps/gust_web/rel apps/gust_web/rel
+COPY apps/gust/rel apps/gust/rel
 
 
 RUN mix compile
 
-WORKDIR /app/apps/gust_web
-RUN mix assets.setup
-RUN mix assets.deploy
+WORKDIR /app/apps/gust
+# RUN mix assets.setup
+# RUN mix assets.deploy
 RUN mix release
 
 FROM ${RUNNER_IMAGE} AS final
@@ -70,10 +67,8 @@ ENV MIX_ENV="prod"
 WORKDIR /app
 RUN chown nobody /app
 
-COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/gust_web ./
+COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/gust ./
 
 USER nobody
 
-EXPOSE 4000
-
-CMD ["/app/bin/server"]
+CMD ["/app/bin/start-core"]
