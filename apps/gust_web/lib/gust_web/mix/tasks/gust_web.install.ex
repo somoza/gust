@@ -4,6 +4,7 @@ if Code.ensure_loaded?(Igniter) do
     @shortdoc "Installs \"gust_web\" into your project"
 
     @dags_dir "dags"
+    @gust_web_version "0.1.31"
 
     use Igniter.Mix.Task
 
@@ -43,8 +44,9 @@ if Code.ensure_loaded?(Igniter) do
 
     defp install_deps(igniter) do
       igniter
+      |> Deps.add_dep({:hackney, "~> 1.9"})
       |> Deps.add_dep({:file_system, "~> 1.1", only: :dev})
-      |> Deps.add_dep({:gust_web, "0.1.31"})
+      |> Deps.add_dep({:gust_web, @gust_web_version})
     end
 
     defp config_setup(igniter, name) do
@@ -203,13 +205,16 @@ if Code.ensure_loaded?(Igniter) do
     defp final_notice(igniter) do
       Igniter.add_notice(igniter, """
 
-      Gust installed. Next:
+      Gust is installed! 
 
-          mix ecto.create
-          mix ecto.migrate
-          mix phx.server
+      Next, update your postgres credentials, and run:
 
-      Then open http://localhost:4000/gust.
+      1. mix deps.get
+      2. mix ecto.create
+      3. mix ecto.migrate
+      4. mix phx.server
+
+      Then open http://localhost:4000/gust/dags.
 
       To change the dashboard mount path, update :dashboard_path in
       config.exs and the gust_dashboard call in your router to match.
