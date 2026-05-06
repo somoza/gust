@@ -163,12 +163,18 @@ GUST_APP=my_app bash -c "$(curl -fsSL https://raw.githubusercontent.com/marciok/
 
 GustWeb includes a built-in MCP server that gives your LLM access to Gust’s core features, including listing DAGs, triggering runs, exploring DAG definitions, and debugging executions.
 
-To enable it, add the following to your config file:
+To mount it in your Phoenix router:
 
 ```elixir
-# dev.exs
-config :gust_web, mcp_enabled: true
+import GustWeb.MCPRouter
+
+scope "/mcp", MyAppWeb do
+  pipe_through :api
+  gust_mcp_server()
+end
 ```
+
+Keep auth and any host-specific policy outside the macro, at the router scope or pipeline level.
 
 ### Connect to an MCP client
 
