@@ -166,6 +166,15 @@ defmodule Mix.Tasks.GustWebInstallTest do
     |> assert_has_notice(&String.contains?(&1, "Gust installed"))
   end
 
+  test "adds the expected dependencies to mix.exs", %{igniter: igniter} do
+    mix_diff = diff(igniter, only: "mix.exs")
+    gust_web_version = GustWeb.MixProject.project()[:version]
+
+    assert mix_diff =~ ~s(+ |      {:gust_web, "#{gust_web_version}"})
+    assert mix_diff =~ ~s(+ |      {:file_system, "~> 1.1", only: :dev})
+    assert mix_diff =~ ~s(+ |      {:hackney, "~> 1.9"})
+  end
+
   test "adds import and scope to router", %{igniter: igniter} do
     igniter
     |> assert_has_patch("lib/my_app_web/router.ex", """
