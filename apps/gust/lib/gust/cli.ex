@@ -18,8 +18,9 @@ defmodule Gust.CLI do
       gust-cli trigger_run my_dag
   """
 
-  alias Gust.DAG.Run.Trigger
   alias Gust.DAG.Definition
+  alias Gust.DAG.Loader
+  alias Gust.DAG.Run.Trigger
   alias Gust.Flows
   require Logger
 
@@ -46,7 +47,7 @@ defmodule Gust.CLI do
 
     dag = Flows.get_dag_by_name(dag_name)
 
-    case Gust.DAG.Loader.get_definition(dag.id) do
+    case Loader.get_definition(dag.id) do
       {:ok, dag_def} ->
         %{
           status: :ok,
