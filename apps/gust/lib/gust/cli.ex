@@ -47,7 +47,15 @@ defmodule Gust.CLI do
 
     dag = Flows.get_dag_by_name(dag_name)
 
-    case Loader.get_definition(dag.id) do
+    if dag do
+      get_dag_def(dag.id)
+    else
+      raise "There are no DAGs with name: #{dag_name}"
+    end
+  end
+
+  defp get_dag_def(dag_id) do
+    case Loader.get_definition(dag_id) do
       {:ok, dag_def} ->
         %{
           status: :ok,

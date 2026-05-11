@@ -34,6 +34,17 @@ defmodule Gust.CLITest do
     assert log =~ "Triggered DAG cli_test_dag; Run: #{last_run.id}"
   end
 
+  test "exec/1 get dag definition for a name that is not a dag", %{
+    dag_name: _dag_name,
+    dag_id: _dag_id
+  } do
+    not_a_dag_name = "not_a_dag_name"
+
+    assert_raise(RuntimeError, "There are no DAGs with name: #{not_a_dag_name}", fn ->
+      CLI.exec(["dag_definition", not_a_dag_name])
+    end)
+  end
+
   test "exec/1 get dag definition for a named dag", %{dag_name: dag_name, dag_id: dag_id} do
     dag_def = %Gust.DAG.Definition{
       name: dag_name,
