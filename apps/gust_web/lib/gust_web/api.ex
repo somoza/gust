@@ -32,10 +32,10 @@ defmodule GustWeb.API do
 
   defp warn_on_missing_api_token_env(env) do
     if System.fetch_env("GUST_API_TOKEN") == :error do
-      IO.warn(
-        "Gust API route was declared, but GUST_API_TOKEN environment variable is not configured. " <>
-          "Gust API requests will be unauthorized.",
-        Macro.Env.stacktrace(env)
+      IO.puts(
+        :stderr,
+        "Gust API warning: route was declared, but GUST_API_TOKEN environment variable is not configured. " <>
+          "Gust API requests will be unauthorized.\n  #{Path.relative_to_cwd(env.file)}:#{env.line}: #{inspect(env.module)}"
       )
     end
   end
