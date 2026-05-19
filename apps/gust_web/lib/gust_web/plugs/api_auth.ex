@@ -5,6 +5,7 @@ defmodule GustWeb.Plugs.APIAuth do
 
   import Plug.Conn
   import Phoenix.Controller, only: [json: 2]
+  require Logger
 
   @behaviour Plug
 
@@ -54,6 +55,14 @@ defmodule GustWeb.Plugs.APIAuth do
       configured_token when is_binary(configured_token) and configured_token != "" ->
         byte_size(token) == byte_size(configured_token) and
           Plug.Crypto.secure_compare(token, configured_token)
+
+      nil ->
+        Logger.warning(
+          "Gust API token is not configured. " <>
+            "Set :gust_web, :api_token to authorize API requests."
+        )
+
+        false
 
       _ ->
         false
