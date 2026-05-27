@@ -31,6 +31,7 @@ defmodule GustWeb.RunLiveTest do
       assert html =~ run_updated_at
       assert html =~ to_string(run.id)
     end
+
     test "list runs with params", %{conn: conn, dag: dag} do
       _run = run_fixture(%{dag_id: dag.id, params: %{"my_key" => "my_value"}})
 
