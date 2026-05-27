@@ -207,6 +207,11 @@ policy outside the macro, at the router scope or pipeline level.
 
 - [Available Skills](https://github.com/marciok/gust/tree/main/skills)
 
+- Install
+```
+gh skill install marciok/gust elixir-dag-creator
+```
+
 ---
 
 ## Upgrading from 0.1.29
