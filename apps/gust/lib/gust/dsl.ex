@@ -53,7 +53,7 @@ defmodule Gust.DSL do
     * `on_finished_callback` - The name of the function to be called.
   """
 
-  @task_opts [:downstream, :store_result, :ctx]
+  @task_opts [:downstream, :store_result, :ctx, :skip_if]
 
   defmacro __using__(dag_options) do
     quote do

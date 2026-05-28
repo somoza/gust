@@ -19,6 +19,7 @@ defmodule Gust.DAG.Runner.DAGWorker do
   @status_map %{
     ok: :succeeded,
     upstream_failed: :failed,
+    skipped: :succeeded,
     error: :failed,
     cancelled: :failed
   }

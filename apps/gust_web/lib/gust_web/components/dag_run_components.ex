@@ -17,6 +17,7 @@ defmodule GustWeb.DagRunComponents do
         case @status do
           :succeeded -> "badge-success"
           :failed -> "badge-error"
+          :skipped -> "badge-warning"
           :upstream_failed -> "badge-warning"
           _ -> "badge-info"
         end

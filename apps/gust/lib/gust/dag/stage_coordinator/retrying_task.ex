@@ -23,23 +23,31 @@ defmodule Gust.DAG.StageCoordinator.RetryingTask do
       |> Enum.map(&Flows.get_task_by_name_run(&1, run_id))
       |> Enum.map(& &1.status)
 
-    if any_upstream_failed?(upstream_statuses), do: :upstream_failed, else: :ok
+    cond do
+      any_upstream_failed?(upstream_statuses) ->
+        :upstream_failed
+
+      any_skipped?(upstream_statuses) ->
+        :skipped
+
+      true ->
+        :ok
+    end
   end
 
   def process_task(%{status: status}, _tasks) when status in [:retrying], do: :ok
 
   def process_task(%{status: status}, _tasks)
-      when status in [:succeeded, :failed, :upstream_failed],
+      when status in [:succeeded, :failed, :upstream_failed, :skipped, :skipped],
       do: :already_processed
 
   def put_running(%{running: running} = coord, task_id) do
     %{coord | running: MapSet.put(running, task_id)}
   end
 
-  def apply_task_result(coord, task, :upstream_failed), do: coord |> remove_pending_task(task)
-  def apply_task_result(coord, task, :ok), do: coord |> remove_pending_task(task)
-  def apply_task_result(coord, task, :already_processed), do: coord |> remove_pending_task(task)
-  def apply_task_result(coord, task, :cancelled), do: coord |> remove_pending_task(task)
+  def apply_task_result(coord, task, status)
+      when status in [:skipped, :ok, :cancelled, :already_processed, :upstream_failed],
+      do: coord |> remove_pending_task(task)
 
   def apply_task_result(%Coord{running: _running, retrying: retrying} = coord, task, :error) do
     task_id = task.id
@@ -63,6 +71,10 @@ defmodule Gust.DAG.StageCoordinator.RetryingTask do
 
   defp any_upstream_failed?(upstream_tasks) do
     Enum.any?(upstream_tasks, fn status -> status in [:failed, :upstream_failed] end)
+  end
+
+  defp any_skipped?(upstream_tasks) do
+    Enum.any?(upstream_tasks, fn status -> status in [:skipped, :skipped] end)
   end
 
   defp coord_status(coord), do: {if(any_running?(coord), do: :continue, else: :finished), coord}
