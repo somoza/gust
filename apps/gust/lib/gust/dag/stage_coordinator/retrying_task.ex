@@ -38,7 +38,7 @@ defmodule Gust.DAG.StageCoordinator.RetryingTask do
   def process_task(%{status: status}, _tasks) when status in [:retrying], do: :ok
 
   def process_task(%{status: status}, _tasks)
-      when status in [:succeeded, :failed, :upstream_failed, :skipped, :skipped],
+      when status in [:succeeded, :failed, :upstream_failed, :skipped],
       do: :already_processed
 
   def put_running(%{running: running} = coord, task_id) do
@@ -74,7 +74,7 @@ defmodule Gust.DAG.StageCoordinator.RetryingTask do
   end
 
   defp any_skipped?(upstream_tasks) do
-    Enum.any?(upstream_tasks, fn status -> status in [:skipped, :skipped] end)
+    Enum.any?(upstream_tasks, fn status -> status == :skipped end)
   end
 
   defp coord_status(coord), do: {if(any_running?(coord), do: :continue, else: :finished), coord}
