@@ -82,8 +82,19 @@ defmodule HelloWorld do
     Logger.info(message)
   end
 
+  # Optional skip conditions receive the same task context.
+  # They must return true or false.
+  def skip_first_task?(%{run_id: run_id}) do
+    run = Flows.get_run!(run_id)
+    Map.get(run.params, "skip_first_task", false)
+  end
+
   # Declaring "first_task" task; setting a downstream task and telling Gust to store its result.
-  task :first_task, downstream: [:second_task], save: true, ctx: %{run_id: run_id} do
+  task :first_task,
+       downstream: [:second_task],
+       save: true,
+       ctx: %{run_id: run_id},
+       skip_if: :skip_first_task? do
     # You can read parameters passed to this run
     run = Flows.get_run!(run_id)
     name = Map.get(run.params, "name", "stranger")
@@ -160,6 +171,7 @@ GUST_APP=my_app bash -c "$(curl -fsSL https://raw.githubusercontent.com/marciok/
 ## Features
 
   - Task orchestration with Cron-style scheduling and dependency-aware DAGs via the Gust DSL.
+  - Conditional task skipping with `:skip_if`; dependent downstream tasks are skipped when an upstream task is skipped.
   - Support multiple nodes.
   - [Support for Python DAGs](https://github.com/marciok/gust/tree/main/apps/gust_py)
   - Manual task controls: stop running tasks, cancel retries, and restart tasks on demand.

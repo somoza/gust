@@ -26,7 +26,12 @@ defmodule Gust.DSL do
           Logger.info(message)
         end
 
-        task :first_task, downstream: [:second_task], save: true do
+        def skip_first_task?(%{run_id: run_id}) do
+          run = Flows.get_run!(run_id)
+          Map.get(run.params, "skip_first_task", false)
+        end
+
+        task :first_task, downstream: [:second_task], save: true, skip_if: :skip_first_task? do
           greetings = "Hi from first_task"
           Logger.info(greetings)
           
@@ -89,6 +94,10 @@ defmodule Gust.DSL do
         * Note: If enabled, the return value **must be a map**.
     * `:ctx` — A pattern that will be matched against the context passed to the task.
         * Defaults to: `%{run_id: run_id}`.
+    * `:skip_if` — The name of a function in the DAG module that receives the task context
+      and returns a boolean. When it returns `true`, the task body is not executed and the
+      task is marked as `:skipped`. If an upstream task is skipped, dependent tasks are also
+      skipped.
 
   ## Example
 
@@ -102,6 +111,15 @@ defmodule Gust.DSL do
 
       task :persist_result, save: true do
         %{result: :ok}
+      end
+
+      def skip_export?(%{run_id: run_id}) do
+        run = Gust.Flows.get_run!(run_id)
+        Map.get(run.params, "skip_export", false)
+      end
+
+      task :export, skip_if: :skip_export? do
+        :ok
       end
 
   When using `save: true`, the return value **must** be a map so it can be merged into the overall DAG results.

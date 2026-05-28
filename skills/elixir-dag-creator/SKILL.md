@@ -34,7 +34,12 @@ defmodule HelloWorld do
     Logger.info("DAG: #{dag.name}; completed with status: #{status}")
   end
 
-  task :first_task, downstream: [:second_task], save: true do
+  def skip_first_task?(%{run_id: run_id}) do
+    run = Flows.get_run!(run_id)
+    Map.get(run.params, "skip_first_task", false)
+  end
+
+  task :first_task, downstream: [:second_task], save: true, skip_if: :skip_first_task? do
     greeting = "Hi from first_task"
     Logger.info(greeting)
 
@@ -58,6 +63,7 @@ end
 - `:downstream` — list of downstream task names
 - `:save` — persists the task return value; when enabled, the return value must be a map
 - `:ctx` — pattern matched against the task context; commonly `%{run_id: run_id}`
+- `:skip_if` — name of a DAG module function that receives the task context and returns a boolean. If it returns `true`, Gust does not run the task body and marks the task as skipped. Downstream tasks that depend on a skipped upstream are skipped too.
 
 ### Examples
 
@@ -77,6 +83,15 @@ end
 task :persist_result, save: true do
   %{result: :ok}
 end
+
+def skip_export?(%{run_id: run_id}) do
+  run = Gust.Flows.get_run!(run_id)
+  Map.get(run.params, "skip_export", false)
+end
+
+task :export, skip_if: :skip_export? do
+  :ok
+end
 ```
 
 ## Validation
@@ -84,4 +99,3 @@ end
 For example, if the file is `dags/hello_world.ex`, confirm that the `hello_world` DAG is valid.
 
 Run command: `mix gust.cli dag_definition hello_world`
-
