@@ -15,6 +15,7 @@ defmodule Gust.Flows.Task do
         :failed,
         :retrying,
         :upstream_failed,
+        :skipped,
         :enqueued
       ],
       default: :created
@@ -38,6 +39,7 @@ defmodule Gust.Flows.Task do
             | :failed
             | :retrying
             | :upstream_failed
+            | :skipped
             | :enqueued,
           result: map(),
           error: map(),

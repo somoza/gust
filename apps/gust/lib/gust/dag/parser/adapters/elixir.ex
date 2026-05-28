@@ -78,7 +78,10 @@ defmodule Gust.DAG.Parser.Adapters.Elixir do
         {:ok, {mod, opts, all_tasks}, warnings} ->
           task_list = build_task_list(mod)
 
-          tasks = Graph.link_tasks(all_tasks) |> put_store_result(all_tasks)
+          tasks =
+            Graph.link_tasks(all_tasks)
+            |> put_option(all_tasks, :store_result)
+            |> put_option(all_tasks, :skip_if)
 
           stages = build_stages(mod)
 
@@ -103,9 +106,9 @@ defmodule Gust.DAG.Parser.Adapters.Elixir do
     %Definition{name: name, file_path: file_path}
   end
 
-  defp put_store_result(tasks, all_tasks) do
+  defp put_option(tasks, all_tasks, opt_name) do
     for {t_name, opts} <- tasks, into: %{} do
-      {t_name, Map.put(opts, :store_result, all_tasks[String.to_atom(t_name)][:store_result])}
+      {t_name, Map.put(opts, opt_name, all_tasks[String.to_atom(t_name)][opt_name])}
     end
   end
 
