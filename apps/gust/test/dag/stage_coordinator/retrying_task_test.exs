@@ -56,6 +56,12 @@ defmodule DAG.StageCoordinator.RetryingTaskTest do
       assert RetryingTask.process_task(task, tasks) == :already_processed
     end
 
+    test "already_processed return for skipped status", %{task: task} do
+      {:ok, task} = Flows.update_task_status(task, :skipped)
+      tasks = %{task.name => %{upstream: []}}
+      assert RetryingTask.process_task(task, tasks) == :already_processed
+    end
+
     test "already_processed return for retrying status", %{task: task} do
       {:ok, task} = Flows.update_task_status(task, :retrying)
       tasks = %{task.name => %{upstream: []}}
@@ -86,6 +92,30 @@ defmodule DAG.StageCoordinator.RetryingTaskTest do
     } do
       Flows.update_task_status(upstream_task1, :succeeded)
       Flows.update_task_status(upstream_task2, :failed)
+
+      assert RetryingTask.process_task(task, tasks) == :upstream_failed
+    end
+
+    test "one upstream skipped", %{
+      task: task,
+      upstream_task1: upstream_task1,
+      upstream_task2: upstream_task2,
+      tasks: tasks
+    } do
+      Flows.update_task_status(upstream_task1, :succeeded)
+      Flows.update_task_status(upstream_task2, :skipped)
+
+      assert RetryingTask.process_task(task, tasks) == :skipped
+    end
+
+    test "failed upstream takes precedence over skipped upstream", %{
+      task: task,
+      upstream_task1: upstream_task1,
+      upstream_task2: upstream_task2,
+      tasks: tasks
+    } do
+      Flows.update_task_status(upstream_task1, :failed)
+      Flows.update_task_status(upstream_task2, :skipped)
 
       assert RetryingTask.process_task(task, tasks) == :upstream_failed
     end
@@ -267,6 +297,29 @@ defmodule DAG.StageCoordinator.RetryingTaskTest do
 
       assert {:continue, %RetryingTask{running: ^remaining, retrying: %{}}} =
                RetryingTask.apply_task_result(coord, task, :ok)
+    end
+  end
+
+  describe "apply_task_result/3 when skipped" do
+    test "finishes when no tasks are left running", %{task: task} do
+      coord = %RetryingTask{running: MapSet.new([task.id]), retrying: %{}}
+
+      assert {:finished, %RetryingTask{running: %MapSet{}, retrying: %{}}} ==
+               RetryingTask.apply_task_result(coord, task, :skipped)
+    end
+
+    test "continues when other tasks are still running", %{run: run, task: task} do
+      sec_task = task_fixture(%{run_id: run.id, name: "second_task"})
+
+      coord = %RetryingTask{
+        running: MapSet.new([task.id, sec_task.id]),
+        retrying: %{task.id => %{attempt: 1}}
+      }
+
+      remaining = MapSet.new([sec_task.id])
+
+      assert {:continue, %RetryingTask{running: ^remaining, retrying: %{}}} =
+               RetryingTask.apply_task_result(coord, task, :skipped)
     end
   end
 

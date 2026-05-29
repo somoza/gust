@@ -46,6 +46,9 @@ defmodule Gust.DAG.Runner.StageWorker do
 
         :upstream_failed ->
           send(self(), {:task_result, nil, task_id, :upstream_failed})
+
+        :skipped ->
+          send(self(), {:task_result, nil, task_id, :skipped})
       end
     end)
 
@@ -150,6 +153,9 @@ defmodule Gust.DAG.Runner.StageWorker do
 
       :upstream_failed ->
         update_status(task, :upstream_failed)
+
+      :skipped ->
+        update_status(task, :skipped)
 
       :cancelled ->
         update_status(task, :failed)

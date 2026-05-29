@@ -54,6 +54,16 @@ defmodule Dag.Runner.StageWorkerTest do
     :ok
   end
 
+  def upstream_skipped(%{task: task}) do
+    task_id = task.id
+
+    Gust.DAGStageCoordinatorMock
+    |> expect(:new, fn [^task_id] -> %{} end)
+    |> expect(:process_task, fn %Flows.Task{id: ^task_id}, _tasks -> :skipped end)
+
+    :ok
+  end
+
   describe "handle_continue/2 when task was already processed" do
     test "does update task result", %{
       run: run,
@@ -153,6 +163,66 @@ defmodule Dag.Runner.StageWorkerTest do
       assert Flows.get_task!(task_id).status == :upstream_failed
 
       refute_receive {:stage_completed, :upstream_failed}, 400
+      refute_receive {:DOWN, ^ref, :process, _pid, :normal}, 400
+    end
+  end
+
+  describe "handle_continue/2 when upstream was skipped" do
+    setup [:upstream_skipped]
+
+    test "marks task skipped and finishes the stage", %{
+      run: run,
+      dag_def: dag_def,
+      task: task
+    } do
+      Gust.PubSub.subscribe_run(run.id)
+      task_id = task.id
+      run_id = run.id
+
+      Gust.DAGStageCoordinatorMock
+      |> expect(:apply_task_result, fn _coord, _task, :skipped ->
+        {:finished, %{running: %{}}}
+      end)
+
+      runner_pid =
+        start_link_supervised!(
+          {Gust.DAG.Runner.StageWorker, %{stage: [task_id], dag_def: dag_def}}
+        )
+
+      ref = Process.monitor(runner_pid)
+
+      assert_receive {:dag, :run_status, %{run_id: ^run_id, status: :skipped}}, 400
+      assert Flows.get_task!(task_id).status == :skipped
+
+      assert_receive {:stage_completed, :skipped}, 400
+      assert_receive {:DOWN, ^ref, :process, _pid, :normal}, 400
+    end
+
+    test "marks task skipped and keeps stage running", %{
+      run: run,
+      dag_def: dag_def,
+      task: task
+    } do
+      Gust.PubSub.subscribe_run(run.id)
+      task_id = task.id
+      run_id = run.id
+
+      Gust.DAGStageCoordinatorMock
+      |> expect(:apply_task_result, fn _coord, _task, :skipped ->
+        {:continue, %{running: %{}}}
+      end)
+
+      runner_pid =
+        start_link_supervised!(
+          {Gust.DAG.Runner.StageWorker, %{stage: [task_id], dag_def: dag_def}}
+        )
+
+      ref = Process.monitor(runner_pid)
+
+      assert_receive {:dag, :run_status, %{run_id: ^run_id, status: :skipped}}, 400
+      assert Flows.get_task!(task_id).status == :skipped
+
+      refute_receive {:stage_completed, :skipped}, 400
       refute_receive {:DOWN, ^ref, :process, _pid, :normal}, 400
     end
   end

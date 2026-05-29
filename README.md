@@ -82,8 +82,19 @@ defmodule HelloWorld do
     Logger.info(message)
   end
 
+  # Optional skip conditions receive the same task context.
+  # They must return true or false.
+  def skip_first_task?(%{run_id: run_id}) do
+    run = Flows.get_run!(run_id)
+    Map.get(run.params, "skip_first_task", false)
+  end
+
   # Declaring "first_task" task; setting a downstream task and telling Gust to store its result.
-  task :first_task, downstream: [:second_task], save: true, ctx: %{run_id: run_id} do
+  task :first_task,
+       downstream: [:second_task],
+       save: true,
+       ctx: %{run_id: run_id},
+       skip_if: :skip_first_task? do
     # You can read parameters passed to this run
     run = Flows.get_run!(run_id)
     name = Map.get(run.params, "name", "stranger")
@@ -160,6 +171,7 @@ GUST_APP=my_app bash -c "$(curl -fsSL https://raw.githubusercontent.com/marciok/
 ## Features
 
   - Task orchestration with Cron-style scheduling and dependency-aware DAGs via the Gust DSL.
+  - Conditional task skipping with `:skip_if`; dependent downstream tasks are skipped when an upstream task is skipped.
   - Support multiple nodes.
   - [Support for Python DAGs](https://github.com/marciok/gust/tree/main/apps/gust_py)
   - Manual task controls: stop running tasks, cancel retries, and restart tasks on demand.
@@ -284,18 +296,26 @@ Open "http://localhost:4000/gust/dags".
 
 ---
 
-## Multi-node Setup 
+## Multi-node Setup
 
-You can run Gust on multiple nodes by passing a role:
--   `core`: Starts only children who are responsible for the pool and executing DAGs
+You can run Gust with different runtime roles by setting `GUST_ROLE`:
+
+- `core`: runs the DAG pool and execution workers without the web UI.
 ```zsh
 GUST_ROLE=core iex --sname core -S mix run --no-halt
 ```
--   `web`: Starts the server and reads DAG's file children.
+- `web`: runs the Phoenix server and loads DAG definitions for the UI, but does not execute DAGs.
 ```zsh
 GUST_ROLE=web iex --sname web -S mix phx.server
 ```
-If you don't pass anything Gust will run as `single` role, that means both `core` and `web` will be enabled.
+- `console`: loads DAG definitions and supporting runtime pieces for CLI or IEx work, but does not start DAG pooling workers.
+```zsh
+GUST_ROLE=console iex -S mix
+```
+
+`mix gust.cli ...` also defaults `GUST_ROLE` to `console`, and release builds ship a `gust-cli` wrapper that exports the same role automatically.
+
+If you do not pass anything, Gust runs as `single`, which enables both the `core` and `web` behavior in the same node.
 
 You can find a full example [here](https://github.com/marciok/gust/tree/main/examples/docker).
 

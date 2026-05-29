@@ -150,6 +150,10 @@
     @apply bg-rose-600;
   }
 
+  .status-skipped {
+    @apply bg-pink-600;
+  }
+
   .status-enqueued {
     @apply bg-slate-600;
   }

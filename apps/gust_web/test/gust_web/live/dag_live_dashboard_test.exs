@@ -132,6 +132,10 @@ defmodule GustWeb.DagLiveDashboardTest do
       assert_status_badge(:upstream_failed, "badge-warning", setup)
     end
 
+    test "renders status badge for a skipped task", setup do
+      assert_status_badge(:skipped, "badge-warning", setup)
+    end
+
     test "renders status badge for a created task", setup do
       assert_status_badge(:created, "badge-info", setup)
     end

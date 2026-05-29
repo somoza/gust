@@ -11,11 +11,20 @@ defmodule Gust.CLI do
     creates a run for it, and dispatches that run through the configured
     `Gust.DAG.Run.Trigger` implementation.
 
+    Accepts an optional `--run_params` flag with a JSON string payload:
+
+        gust-cli trigger_run my_dag --run_params '{"name": "foo"}'
+
+  * `dag_definition <dag_name>`: returns the DAG definition payload as JSON,
+    including the definition load status.
+
   Example:
 
       gust-cli trigger_run my_dag
   """
 
+  alias Gust.DAG.Definition
+  alias Gust.DAG.Loader
   alias Gust.DAG.Run.Trigger
   alias Gust.Flows
   require Logger
@@ -25,16 +34,52 @@ defmodule Gust.CLI do
 
   Currently supported commands:
 
-  * `["trigger_run", dag_name]`
+  * `["trigger_run", dag_name]` — optionally with `--run_params '<json>'`
+  * `["dag_definition", dag_name]`
   """
   def exec(["trigger_run", dag_name]) do
+    exec(["trigger_run", dag_name, "--run_params", "{}"])
+  end
+
+  def exec(["trigger_run", dag_name, "--run_params", json_string]) do
     load_app()
 
+    run_params = Jason.decode!(json_string)
+
     dag = Flows.get_dag_by_name(dag_name)
-    {:ok, run} = Flows.create_run(%{dag_id: dag.id})
+    {:ok, run} = Flows.create_run(%{dag_id: dag.id, params: run_params})
     run = Trigger.dispatch_run(run)
 
     Logger.warning("Triggered DAG #{dag.name}; Run: #{run.id}")
+  end
+
+  def exec(["dag_definition", dag_name]) do
+    load_app()
+
+    dag = Flows.get_dag_by_name(dag_name)
+
+    if dag do
+      get_dag_def(dag.id)
+    else
+      raise "There are no DAGs with name: #{dag_name}"
+    end
+  end
+
+  defp get_dag_def(dag_id) do
+    case Loader.get_definition(dag_id) do
+      {:ok, dag_def} ->
+        %{
+          status: :ok,
+          definition: Definition.to_map(dag_def)
+        }
+
+      {:error, error} ->
+        %{
+          status: :error,
+          error: inspect(error)
+        }
+    end
+    |> Jason.encode!()
   end
 
   defp load_app do
