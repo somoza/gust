@@ -20,6 +20,7 @@ defmodule GustWeb.Dashboard.AssetsTest do
       assert conn.status == 200
       assert get_resp_header(conn, "content-type") == ["text/css"]
       assert get_resp_header(conn, "cache-control") == ["public, max-age=31536000, immutable"]
+      assert conn.resp_body =~ "tailwindcss"
       assert conn.halted
     end
 
@@ -29,6 +30,7 @@ defmodule GustWeb.Dashboard.AssetsTest do
       assert conn.status == 200
       assert get_resp_header(conn, "content-type") == ["text/javascript"]
       assert get_resp_header(conn, "cache-control") == ["public, max-age=31536000, immutable"]
+      assert conn.resp_body =~ "LiveSocket"
       assert conn.halted
     end
 
@@ -45,6 +47,9 @@ defmodule GustWeb.Dashboard.AssetsTest do
 
       assert is_binary(hash)
       assert String.match?(hash, ~r/^[0-9a-f]{32}$/)
+
+      conn = Assets.call(build_conn(), :css)
+      assert Base.encode16(:crypto.hash(:md5, conn.resp_body), case: :lower) == hash
     end
 
     test "returns md5 hex for js" do
@@ -52,6 +57,9 @@ defmodule GustWeb.Dashboard.AssetsTest do
 
       assert is_binary(hash)
       assert String.match?(hash, ~r/^[0-9a-f]{32}$/)
+
+      conn = Assets.call(build_conn(), :js)
+      assert Base.encode16(:crypto.hash(:md5, conn.resp_body), case: :lower) == hash
     end
   end
 
