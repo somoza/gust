@@ -44,13 +44,14 @@ defmodule Gust.Application do
   """
 
   use Application
+  alias Gust.DAG
 
   @impl true
   def start(_type, _args) do
     env = System.get_env("MIX_ENV") || Mix.env() |> to_string()
     folder = Application.get_env(:gust, :dags_folder)
 
-    Gust.DAG.Folder.verify!(env, folder)
+    DAG.Folder.verify!(env, folder)
 
     query = Gust.DNSCluster.parse_query(Application.get_env(:gust, :dns_cluster_query))
 
