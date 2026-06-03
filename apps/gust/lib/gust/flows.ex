@@ -348,7 +348,7 @@ defmodule Gust.Flows do
 
     runs_q =
       from r in Run,
-        order_by: [desc: r.inserted_at],
+        order_by: [desc: r.inserted_at, desc: r.id],
         limit: ^limit,
         offset: ^offset
 
