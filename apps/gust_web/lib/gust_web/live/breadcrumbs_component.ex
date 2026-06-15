@@ -11,9 +11,9 @@ defmodule GustWeb.BreadcrumbsComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign_new(:run_id, fn -> get_run_id(selected_item) end)
-     |> assign_new(:task_index, fn -> get_task_index(selected_item) end)
-     |> assign_new(:task_name, fn -> get_task_name(selected_item) end)}
+     |> assign(:run_id, get_run_id(selected_item))
+     |> assign(:task_index, get_task_index(selected_item))
+     |> assign(:task_name, get_task_name(selected_item))}
   end
 
   @impl true
