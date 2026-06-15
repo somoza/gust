@@ -25,7 +25,7 @@ console:
 install:
 	cd apps/gust_web/assets && npm install
 	mix deps.get
-	cd apps/gust_web && mix assets.deploy
+	mix assets.deploy
 	mix ecto.create
 	mix ecto.migrate
 	mkdir dags
