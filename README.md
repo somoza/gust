@@ -43,7 +43,8 @@ A task orchestration system designed to be efficient, fast and developer-friendl
   - [Web Interface](#web-interface)
 - [Getting started](#getting-started)
   - [Prerequisites](#prerequisites)
-  - [Creating a new Gust app](#creating-a-new-gust-app)
+  - [Creating a new Gust app with igniter](#creating-a-new-gust-app-with-igniter)
+  - [Creating a new Gust app manually](#creating-a-new-gust-app-manually)
 - [Features](#features)
   - [MCP Server](#mcp-server)
   - [Connect to an MCP client](#connect-to-an-mcp-client)
@@ -155,7 +156,7 @@ end
 - [x] Postgres
 
 
-### Creating a new Gust app
+### Creating a new Gust app with igniter
 
 1. Replace `my_app` for your app name and run:
 
@@ -177,7 +178,15 @@ GUST_APP=my_app bash -c "$(curl -fsSL https://raw.githubusercontent.com/marciok/
 5. Check [the docs](https://hexdocs.pm/gust/Gust.DSL.html) on how to customize your DAG
 
 6. Open  "http://localhost:4000/dags" to visualize your app
+   
+### Creating a new Gust app manually
 
+1. Clone repo `git clone git@github.com:marciok/gust.git my_app`
+2. Rename or copy .env.make to .env (is the same file than .env.example without quotes)
+3. make install
+4. make console
+5. Check [the docs](https://hexdocs.pm/gust/Gust.DSL.html) on how to customize your DAG
+6. Open  "http://localhost:4000/dags" to visualize your app
 
 ---
 
