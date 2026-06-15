@@ -1,4 +1,4 @@
-ENV_FILE ?= .env
+ENV_FILE ?= .env.make
 ifneq (,$(wildcard ${ENV_FILE}))
 	include ${ENV_FILE}
 	export
@@ -23,8 +23,6 @@ console:
 	iex -S mix
 
 install:
-	cp .env.make .env
-	export $$(cat .env | xargs)
 	cd apps/gust_web/assets && npm install
 	mix deps.get
 	mix assets.deploy
