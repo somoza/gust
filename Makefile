@@ -23,6 +23,7 @@ console:
 	iex -S mix
 
 install:
+	mv .env.make .env
 	cd apps/gust_web/assets && npm install
 	mix deps.get
 	mix assets.deploy

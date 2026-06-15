@@ -182,7 +182,7 @@ GUST_APP=my_app bash -c "$(curl -fsSL https://raw.githubusercontent.com/marciok/
 ### Creating a new Gust app manually
 
 1. Clone repo `git clone git@github.com:marciok/gust.git my_app`
-2. Rename or copy .env.make to .env (is the same file than .env.example without quotes)
+2. Check / change database credentials in .env.make file
 3. make install
 4. make console
 5. Check [the docs](https://hexdocs.pm/gust/Gust.DSL.html) on how to customize your DAG
