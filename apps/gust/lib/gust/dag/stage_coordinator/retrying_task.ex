@@ -17,10 +17,10 @@ defmodule Gust.DAG.StageCoordinator.RetryingTask do
     %{coord | retrying: updated_retrying}
   end
 
-  def process_task(%{status: :created, name: name, run_id: run_id}, tasks) do
+  def process_task(%{status: :created, name: name, run_id: run_id, map_index: map_index}, tasks) do
     upstream_statuses =
       tasks[name][:upstream]
-      |> Enum.flat_map(&Flows.get_task_instances_by_name_run(&1, run_id))
+      |> Enum.flat_map(&Flows.get_tasks_by_name(&1, run_id))
       |> Enum.map(& &1.status)
 
     cond do
@@ -31,7 +31,7 @@ defmodule Gust.DAG.StageCoordinator.RetryingTask do
         :skipped
 
       true ->
-        map_or_else(tasks[name], run_id)
+        map_or_else(tasks[name], run_id, map_index)
     end
   end
 
@@ -66,9 +66,9 @@ defmodule Gust.DAG.StageCoordinator.RetryingTask do
     end
   end
 
-  defp map_or_else(task, run_id) do
+  defp map_or_else(task, run_id, map_index) do
     if upstream_task_name = task[:map_over] do
-      TaskExpander.get_params(to_string(upstream_task_name), run_id)
+      TaskExpander.get_params(to_string(upstream_task_name), run_id, map_index)
     else
       :ok
     end

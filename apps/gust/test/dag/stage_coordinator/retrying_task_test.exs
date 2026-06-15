@@ -144,7 +144,7 @@ defmodule DAG.StageCoordinator.RetryingTaskTest do
       }
 
       Gust.DAGTaskExpanderMock
-      |> expect(:get_params, fn "say_by", run_id when run_id == run.id ->
+      |> expect(:get_params, fn "say_by", run_id, nil when run_id == run.id ->
         {:expand_task, results}
       end)
 

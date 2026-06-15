@@ -11,7 +11,7 @@ defmodule Gust.DAG.Runner.StageWorker do
   def init(init_arg) do
     coord =
       Coord.new(
-        for {_status, {task, _params}} <- init_arg[:stage] do
+        for {_status, task} <- init_arg[:stage] do
           task.id
         end
       )
@@ -43,10 +43,10 @@ defmodule Gust.DAG.Runner.StageWorker do
         :process_task,
         %{stage: stage, dag_def: dag_def} = state
       ) do
-    Enum.each(stage, fn {status, {task, params}} ->
+    Enum.each(stage, fn {status, task} ->
       case status do
         :ok ->
-          start_task(task, dag_def, params)
+          start_task(task, dag_def)
 
         status when status in [:already_processed, :skipped, :upstream_failed] ->
           send(self(), {:task_result, nil, task.id, status})
@@ -107,7 +107,7 @@ defmodule Gust.DAG.Runner.StageWorker do
         %{stage: _stage, dag_def: dag_def, coord: coord} = state
       ) do
     start_task(task, dag_def)
-    Coord.put_running(coord, task.id)
+    coord = Coord.put_running(coord, task.id)
 
     {:noreply, %{state | coord: coord}}
   end
@@ -175,11 +175,10 @@ defmodule Gust.DAG.Runner.StageWorker do
   defp update_result?(tasks, name, :ok), do: tasks[name][:store_result]
   defp update_result?(_tasks, _name, _status), do: false
 
-  defp start_task(task, dag_def, params \\ nil) do
+  defp start_task(task, dag_def) do
     task_opts =
       dag_def.tasks
       |> Map.fetch!(task.name)
-      |> maybe_put_params(params)
 
     {:ok, _pid} = TaskRunnerSupervisor.start_child(task, dag_def, self(), task_opts)
     update_status(task, :running)
@@ -189,10 +188,7 @@ defmodule Gust.DAG.Runner.StageWorker do
     Flows.update_task_status(task, status) |> broadcast()
   end
 
-  defp broadcast({:ok, %Flows.Task{run_id: id, status: status}}) do
-    PubSub.broadcast_run_status(id, status)
+  defp broadcast({:ok, %Flows.Task{run_id: id, status: status, name: _name, id: task_id}}) do
+    PubSub.broadcast_run_status(id, status, task_id)
   end
-
-  defp maybe_put_params(task_opts, nil), do: task_opts
-  defp maybe_put_params(task_opts, params), do: Map.put(task_opts, :params, params)
 end

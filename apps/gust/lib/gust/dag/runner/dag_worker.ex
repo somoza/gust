@@ -70,6 +70,15 @@ defmodule Gust.DAG.Runner.DAGWorker do
     {:via, Registry, {Gust.Registry, name}}
   end
 
+  defp expand_task(task, run_id, params_list) do
+    params_list
+    |> TaskExpander.expand_over(task, run_id, fn task_name, index ->
+      {:ok, task} = reconcile_mapped_task(task_name, run_id, index)
+      task
+    end)
+    |> Enum.map(fn {status, {task, _params}} -> {status, task} end)
+  end
+
   @impl true
   def handle_continue(
         :init_stage,
@@ -86,28 +95,33 @@ defmodule Gust.DAG.Runner.DAGWorker do
   end
 
   defp start_stage(stage, run_id, dag_def) do
+    {:ok, tasks} = Flows.reconcile_run_tasks(stage, run_id)
+
     stage =
-      for task_name <- stage do
-        {:ok, task} = ensure_task(task_name, run_id)
+      for {:ok, task} <- tasks do
         status = Coord.process_task(task, dag_def.tasks)
 
         case status do
+          {:expand_task, []} ->
+            {:skipped, task}
+
           {:expand_task, params_list} ->
-            TaskExpander.expand_over(params_list, task, run_id, fn task_name, index ->
-              {:ok, task} = ensure_task(task_name, run_id, index)
-              task
-            end)
+            expand_task(task, run_id, params_list)
 
           {:expand_task_error, error} ->
-            {{:non_recoverable_error, error}, {task, nil}}
+            {{:non_recoverable_error, error}, task}
+
+          {:already_expanded, params} ->
+            {:ok, task} = Flows.update_task_mapping(task, task.map_index, params)
+            {:ok, task}
 
           status ->
-            {status, {task, nil}}
+            {status, task}
         end
       end
       |> List.flatten()
 
-    {:ok, _stage_pid} = StageRunnerSupervisor.start_child(dag_def, stage, run_id)
+    {:ok, _pid} = StageRunnerSupervisor.start_child(dag_def, stage, run_id)
   end
 
   @impl true
@@ -177,7 +191,7 @@ defmodule Gust.DAG.Runner.DAGWorker do
     "#{timestamp}-#{random}"
   end
 
-  defp ensure_task(name, run_id, map_index \\ nil) do
+  defp reconcile_mapped_task(name, run_id, map_index) do
     case Flows.get_task_by_name(name, run_id, map_index) do
       nil ->
         Flows.create_task(%{run_id: run_id, name: name, map_index: map_index})
