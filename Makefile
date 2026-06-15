@@ -23,11 +23,12 @@ console:
 	iex -S mix
 
 install:
-	mv .env.make .env
+	cp .env.make .env
+	export $$(cat .env | xargs)
 	cd apps/gust_web/assets && npm install
 	mix deps.get
 	mix assets.deploy
 	mix ecto.create
 	mix ecto.migrate
-	mkdir dags
+	mkdir -p dags
 	touch dags/.gitkeep
