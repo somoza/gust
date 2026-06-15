@@ -3,6 +3,8 @@ defmodule GustWeb.MCP.Resource do
 
   defstruct [:uri, :name, mime_type: "text/plain", handler: GustWeb.MCP.Resources.Read]
 
+  @type t :: %__MODULE__{}
+
   def new(uri, name, mime_type \\ "text/plain") do
     %__MODULE__{
       uri: uri,

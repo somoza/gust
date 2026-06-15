@@ -24,6 +24,8 @@ erl_crash.dump
 
 .DS_Store
 
+.elixir_ls
+
 dags/
 !/examples/dags/
 
@@ -36,6 +38,7 @@ docker-compose.yml
 # Built assets (compiled/digested)
 priv/static/assets/
 priv/static/cache_manifest.json
+apps/gust_web/assets/package-lock.json
 apps/gust_web/priv/static/assets/
 apps/gust_web/priv/static/cache_manifest.json
 
