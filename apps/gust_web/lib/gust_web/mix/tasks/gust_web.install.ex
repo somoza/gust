@@ -204,7 +204,7 @@ if Code.ensure_loaded?(Igniter) do
     defp final_notice(igniter) do
       Igniter.add_notice(igniter, """
 
-      Gust is installed! 
+      Gust is installed!
 
       Next, update your postgres credentials, and run:
 
@@ -213,7 +213,7 @@ if Code.ensure_loaded?(Igniter) do
       3. mix ecto.migrate
       4. mix phx.server
 
-      Then open http://localhost:4000/gust/dags.
+      Then open http://localhost:4000/dags.
 
       To change the dashboard mount path, update :dashboard_path in
       config.exs and the gust_dashboard call in your router to match.

@@ -2,6 +2,7 @@ defmodule GustWeb.MCP.Tool do
   @moduledoc false
 
   defstruct [:name, :description, :props, handler: GustWeb.MCP.Tools.Call]
+  @type t :: %__MODULE__{}
 
   def new(name, description, props \\ []) do
     %__MODULE__{

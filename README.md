@@ -35,15 +35,29 @@ A task orchestration system designed to be efficient, fast and developer-friendl
 
 ## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Motivation](#motivation)
+- [In Action](#in-action)
 - [Overview](#overview)
-- [Getting Started](#getting-started)
-- [Adding to an existing app](#adding-gust-to-an-existing-phoenix-app)
-- [Multi-node setup](#multi-node-setup)
+  - [DAG Code Example](#dag-code-example)
+  - [Web Interface](#web-interface)
+- [Getting started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Creating a new Gust app with igniter](#creating-a-new-gust-app-with-igniter)
+  - [Creating a new Gust app manually](#creating-a-new-gust-app-manually)
 - [Features](#features)
-- [Examples](https://github.com/marciok/gust/tree/main/examples)
-- [Upgrading from 0.1.29](#upgrading-from-0.1.29)
-- [Benchmark](https://github.com/marciok/gust-benchmark)
+  - [MCP Server](#mcp-server)
+  - [Connect to an MCP client](#connect-to-an-mcp-client)
+  - [Skills](#skills)
+- [Upgrading from 0.1.29](#upgrading-from-0129)
+  - [Key changes:](#key-changes)
+- [Adding Gust to an existing Phoenix app](#adding-gust-to-an-existing-phoenix-app)
+- [Multi-node Setup](#multi-node-setup)
+- [How to Run Tests Locally](#how-to-run-tests-locally)
+  - [Useful Commands](#useful-commands)
+  - [Common Failures](#common-failures)
+  - [Sponsors](#sponsors)
+- [License](#license)
 
 
 ---
@@ -142,7 +156,7 @@ end
 - [x] Postgres
 
 
-### Creating a new Gust app
+### Creating a new Gust app with igniter
 
 1. Replace `my_app` for your app name and run:
 
@@ -163,8 +177,17 @@ GUST_APP=my_app bash -c "$(curl -fsSL https://raw.githubusercontent.com/marciok/
 
 5. Check [the docs](https://hexdocs.pm/gust/Gust.DSL.html) on how to customize your DAG
 
-6. Open  "http://localhost:4000/gust/dags" to visualize your app
+6. Open  "http://localhost:4000/dags" to visualize your app
+   
+### Creating a new Gust app manually
 
+1. Clone repo `git clone git@github.com:marciok/gust.git my_app`
+2. cd my_app
+3. Check / change database credentials in .env.make file
+4. make install
+5. make console
+6. Check [the docs](https://hexdocs.pm/gust/Gust.DSL.html) on how to customize your DAG
+7. Open  "http://localhost:4000/dags" to visualize your app
 
 ---
 
@@ -342,7 +365,7 @@ mix ecto.migrate
 mix phx.server
 ```
 
-Open "http://localhost:4000/gust/dags".
+Open "http://localhost:4000/dags".
 
 ---
 
